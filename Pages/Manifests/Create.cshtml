@@ -1,0 +1,22 @@
+@page
+@model IIIF.POC.PostgreSqlRelationalV3Store.Pages.Manifests.CreateModel
+@{ ViewData["Title"] = "Add Manifest"; }
+
+<section class="page-heading">
+    <div>
+        <span class="eyebrow">CREATE</span>
+        <h1>Add a IIIF Manifest</h1>
+        <p>The input is detected, validated, normalized to Presentation 3, and projected into a relational owned-entity aggregate.</p>
+    </div>
+</section>
+<div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+<form method="post" class="card editor-card">
+    <label asp-for="Input.Json"></label>
+    <textarea asp-for="Input.Json" spellcheck="false"></textarea>
+    <span asp-validation-for="Input.Json" class="field-error"></span>
+    <div class="form-actions">
+        <button type="submit">Validate and store</button>
+        <a asp-page="Index" class="button secondary">Cancel</a>
+    </div>
+</form>
+<partial name="_Findings" model="Model.Findings" />

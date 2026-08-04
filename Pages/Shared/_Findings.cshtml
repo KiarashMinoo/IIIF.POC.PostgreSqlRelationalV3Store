@@ -1,0 +1,23 @@
+@model IReadOnlyList<ManifestFinding>
+@if (Model.Count > 0)
+{
+    <section class="card findings">
+        <h2>Validation findings</h2>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Severity</th><th>Rule</th><th>Path</th><th>Message</th></tr></thead>
+                <tbody>
+                @foreach (var finding in Model)
+                {
+                    <tr>
+                        <td><span class="badge">@finding.Severity</span></td>
+                        <td><code>@finding.RuleId</code></td>
+                        <td><code>@finding.Path</code></td>
+                        <td>@finding.Message</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}

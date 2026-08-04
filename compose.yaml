@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: iiif-relational-v3-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: iiif_relational_v3
+      POSTGRES_USER: iiif
+      POSTGRES_PASSWORD: iiif_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - iiif-relational-v3-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iiif -d iiif_relational_v3"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  iiif-relational-v3-data:

@@ -1,0 +1,55 @@
+@page
+@model IIIF.POC.PostgreSqlRelationalV3Store.Pages.Manifests.IndexModel
+@{ ViewData["Title"] = "Stored Manifests"; }
+
+<section class="page-heading">
+    <div>
+        <span class="eyebrow">RELATIONAL PRESENTATION 3</span>
+        <h1>Stored IIIF Manifests</h1>
+        <p>Known Presentation 3 elements are relational owned entities. Only extension and unknown properties are JSONB.</p>
+    </div>
+    <a asp-page="Create" class="button">Add Manifest</a>
+</section>
+
+<form method="get" class="search-form">
+    <input asp-for="Query" placeholder="Search IIIF id or any label value" />
+    <button type="submit">Search</button>
+    @if (!string.IsNullOrWhiteSpace(Model.Query))
+    {
+        <a asp-page="Index" class="button secondary">Clear</a>
+    }
+</form>
+
+@if (Model.Manifests.Count == 0)
+{
+    <div class="empty-state">
+        <h2>No Manifests found</h2>
+        <p>Add a Presentation 2.x or 3.0 Manifest. The application normalizes it to Presentation 3 before relational projection.</p>
+    </div>
+}
+else
+{
+    <div class="table-card">
+        <table>
+            <thead><tr><th>Label</th><th>IIIF id</th><th>Source</th><th>Canvases</th><th>Ranges</th><th>Updated UTC</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var item in Model.Manifests)
+            {
+                <tr>
+                    <td><strong>@item.Label</strong></td>
+                    <td class="wrap"><code>@item.IiifId</code></td>
+                    <td><span class="badge">@item.SourceVersion</span></td>
+                    <td>@item.CanvasCount</td>
+                    <td>@item.StructureCount</td>
+                    <td>@item.UpdatedAtUtc.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="actions">
+                        <a asp-page="Details" asp-route-id="@item.Id">View</a>
+                        <a asp-page="Edit" asp-route-id="@item.Id">Edit</a>
+                        <a asp-page="Delete" asp-route-id="@item.Id" class="danger-link">Delete</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

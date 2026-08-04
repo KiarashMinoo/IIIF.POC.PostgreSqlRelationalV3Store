@@ -1,0 +1,23 @@
+@page "{id:guid}"
+@model IIIF.POC.PostgreSqlRelationalV3Store.Pages.Manifests.EditModel
+@{ ViewData["Title"] = "Edit Manifest"; }
+
+<section class="page-heading">
+    <div>
+        <span class="eyebrow">UPDATE</span>
+        <h1>Edit the Manifest</h1>
+        <p>Saving replaces the owned relational aggregate after validation and Presentation 3 normalization. PostgreSQL xmin protects against lost updates.</p>
+    </div>
+</section>
+<div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+<form method="post" class="card editor-card">
+    <input asp-for="Input.Version" type="hidden" />
+    <label asp-for="Input.Json"></label>
+    <textarea asp-for="Input.Json" spellcheck="false"></textarea>
+    <span asp-validation-for="Input.Json" class="field-error"></span>
+    <div class="form-actions">
+        <button type="submit">Save changes</button>
+        <a asp-page="Details" asp-route-id="@Model.Id" class="button secondary">Cancel</a>
+    </div>
+</form>
+<partial name="_Findings" model="Model.Findings" />

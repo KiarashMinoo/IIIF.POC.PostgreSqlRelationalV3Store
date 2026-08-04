@@ -1,0 +1,42 @@
+@page "{id:guid}"
+@model IIIF.POC.PostgreSqlRelationalV3Store.Pages.Manifests.DetailsModel
+@{ ViewData["Title"] = Model.Label; }
+
+<section class="page-heading">
+    <div>
+        <span class="eyebrow">DETAILS</span>
+        <h1>@Model.Label</h1>
+        <p class="wrap"><code>@Model.Manifest.IiifId</code></p>
+    </div>
+    <div class="button-group">
+        <a asp-page="Edit" asp-route-id="@Model.Manifest.Id" class="button">Edit</a>
+        <a asp-page="Delete" asp-route-id="@Model.Manifest.Id" class="button danger">Delete</a>
+    </div>
+</section>
+
+<section class="metadata-grid">
+    <article><span>Source version</span><strong>@Model.Manifest.SourceVersion</strong></article>
+    <article><span>Canvases</span><strong>@Model.Manifest.Items.Count</strong></article>
+    <article><span>Ranges</span><strong>@Model.Manifest.Structures.Count</strong></article>
+    <article><span>Providers</span><strong>@Model.Manifest.Provider.Count</strong></article>
+    <article><span>Metadata entries</span><strong>@Model.Manifest.Metadata.Count</strong></article>
+    <article><span>Annotations</span><strong>@Model.Manifest.Annotations.Count</strong></article>
+    <article><span>Created UTC</span><strong>@Model.Manifest.CreatedAtUtc.ToString("u")</strong></article>
+    <article><span>Updated UTC</span><strong>@Model.Manifest.UpdatedAtUtc.ToString("u")</strong></article>
+    <article class="wide"><span>SHA-256 of reconstructed canonical V3</span><code>@Model.Manifest.ContentHash</code></article>
+</section>
+
+<section class="card">
+    <div class="section-heading">
+        <div>
+            <h2>Reconstructed Presentation 3 JSON</h2>
+            <p>This document was rebuilt from the relational owned-entity graph. Only extension/unknown properties came from JSONB columns.</p>
+        </div>
+        <div class="button-group">
+            <a asp-page-handler="Export" asp-route-id="@Model.Manifest.Id" asp-route-target="v3.0" class="button secondary">Export 3.0</a>
+            <a asp-page-handler="Export" asp-route-id="@Model.Manifest.Id" asp-route-target="v2.1" class="button secondary">Export 2.1</a>
+            <a asp-page-handler="Export" asp-route-id="@Model.Manifest.Id" asp-route-target="v2.0" class="button secondary">Export 2.0</a>
+        </div>
+    </div>
+    <pre>@Model.Json</pre>
+</section>
