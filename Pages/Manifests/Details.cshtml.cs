@@ -1,6 +1,6 @@
 using System.Text;
 using IIIF.Manifests.Serializer;
-using IIIF.POC.PostgreSqlRelationalV3Store.Domain;
+using IIIF.POC.PostgreSqlRelationalV3Store.Models;
 using IIIF.POC.PostgreSqlRelationalV3Store.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -9,16 +9,16 @@ namespace IIIF.POC.PostgreSqlRelationalV3Store.Pages.Manifests;
 
 public sealed class DetailsModel(ManifestStoreService store) : PageModel
 {
-    public ManifestEntity Manifest { get; private set; } = default!;
+    public ManifestDetail Manifest { get; private set; } = default!;
     public string Json { get; private set; } = "";
-    public string Label => ManifestRelationalMapper.FirstLabel(Manifest.Label);
+    public string Label => IiifLabelFormatter.FirstOrDefault(Manifest.Node.Label);
 
     public async Task<IActionResult> OnGetAsync(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await store.FindAsync(id, cancellationToken);
-        if (entity is null) return NotFound();
-        Manifest = entity;
-        Json = ManifestRelationalMapper.ToCanonicalJson(entity, indented: true);
+        var detail = await store.FindAsync(id, cancellationToken);
+        if (detail is null) return NotFound();
+        Manifest = detail;
+        Json = await store.CanonicalJsonAsync(id, cancellationToken) ?? "";
         return Page();
     }
 

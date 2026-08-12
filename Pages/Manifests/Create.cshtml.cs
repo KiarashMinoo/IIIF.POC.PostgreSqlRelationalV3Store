@@ -25,7 +25,7 @@ public sealed class CreateModel(ManifestStoreService store) : PageModel
             return Page();
         }
 
-        TempData["StatusMessage"] = "Manifest validated, normalized to Presentation 3, projected to owned entities, and stored in PostgreSQL.";
+        TempData["StatusMessage"] = "Manifest validated, normalized to Presentation 3, and stored as JSONB in PostgreSQL.";
         return RedirectToPage("Details", new { id = result.Id.Value });
     }
 

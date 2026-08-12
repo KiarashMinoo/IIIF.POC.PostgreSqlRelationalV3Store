@@ -1,4 +1,4 @@
-using IIIF.POC.PostgreSqlRelationalV3Store.Domain;
+using IIIF.POC.PostgreSqlRelationalV3Store.Models;
 using IIIF.POC.PostgreSqlRelationalV3Store.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -7,15 +7,15 @@ namespace IIIF.POC.PostgreSqlRelationalV3Store.Pages.Manifests;
 
 public sealed class DeleteModel(ManifestStoreService store) : PageModel
 {
-    public ManifestEntity Manifest { get; private set; } = default!;
-    public string Label => ManifestRelationalMapper.FirstLabel(Manifest.Label);
+    public ManifestDetail Manifest { get; private set; } = default!;
+    public string Label => IiifLabelFormatter.FirstOrDefault(Manifest.Node.Label);
     [BindProperty] public uint Version { get; set; }
 
     public async Task<IActionResult> OnGetAsync(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await store.FindAsync(id, cancellationToken);
-        if (entity is null) return NotFound();
-        Manifest = entity; Version = entity.Version; return Page();
+        var detail = await store.FindAsync(id, cancellationToken);
+        if (detail is null) return NotFound();
+        Manifest = detail; Version = detail.Version; return Page();
     }
 
     public async Task<IActionResult> OnPostAsync(Guid id, CancellationToken cancellationToken)
@@ -23,13 +23,13 @@ public sealed class DeleteModel(ManifestStoreService store) : PageModel
         var result = await store.DeleteAsync(id, Version, cancellationToken);
         if (!result.Succeeded)
         {
-            var entity = await store.FindAsync(id, cancellationToken);
-            if (entity is null) return RedirectToPage("Index");
-            Manifest = entity;
+            var detail = await store.FindAsync(id, cancellationToken);
+            if (detail is null) return RedirectToPage("Index");
+            Manifest = detail;
             ModelState.AddModelError(string.Empty, result.Error ?? "The Manifest could not be deleted.");
             return Page();
         }
-        TempData["StatusMessage"] = "Manifest aggregate and all owned rows were deleted.";
+        TempData["StatusMessage"] = "Manifest deleted from PostgreSQL.";
         return RedirectToPage("Index");
     }
 }

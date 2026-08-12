@@ -4,11 +4,11 @@
 <section class="card narrow danger-zone">
     <span class="eyebrow">DELETE</span>
     <h1>Delete this Manifest?</h1>
-    <p>Deleting the aggregate cascades through all owned tables. The POC does not keep revisions or soft-deleted records.</p>
+    <p>This removes the stored manifest row. The POC does not keep revisions or soft-deleted records.</p>
     <dl>
         <dt>Label</dt><dd>@Model.Label</dd>
         <dt>IIIF id</dt><dd class="wrap"><code>@Model.Manifest.IiifId</code></dd>
-        <dt>Canvases</dt><dd>@Model.Manifest.Items.Count</dd>
+        <dt>Canvases</dt><dd>@Model.Manifest.Node.Items.Count</dd>
     </dl>
     <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
     <form method="post">

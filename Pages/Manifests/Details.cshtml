@@ -16,21 +16,21 @@
 
 <section class="metadata-grid">
     <article><span>Source version</span><strong>@Model.Manifest.SourceVersion</strong></article>
-    <article><span>Canvases</span><strong>@Model.Manifest.Items.Count</strong></article>
-    <article><span>Ranges</span><strong>@Model.Manifest.Structures.Count</strong></article>
-    <article><span>Providers</span><strong>@Model.Manifest.Provider.Count</strong></article>
-    <article><span>Metadata entries</span><strong>@Model.Manifest.Metadata.Count</strong></article>
-    <article><span>Annotations</span><strong>@Model.Manifest.Annotations.Count</strong></article>
+    <article><span>Canvases</span><strong>@Model.Manifest.Node.Items.Count</strong></article>
+    <article><span>Ranges</span><strong>@Model.Manifest.Node.Structures.Count</strong></article>
+    <article><span>Providers</span><strong>@Model.Manifest.Node.Provider.Count</strong></article>
+    <article><span>Metadata entries</span><strong>@Model.Manifest.Node.Metadata.Count</strong></article>
+    <article><span>Services</span><strong>@Model.Manifest.Node.Services.Count</strong></article>
     <article><span>Created UTC</span><strong>@Model.Manifest.CreatedAtUtc.ToString("u")</strong></article>
     <article><span>Updated UTC</span><strong>@Model.Manifest.UpdatedAtUtc.ToString("u")</strong></article>
-    <article class="wide"><span>SHA-256 of reconstructed canonical V3</span><code>@Model.Manifest.ContentHash</code></article>
+    <article class="wide"><span>SHA-256 of canonical V3</span><code>@Model.Manifest.ContentHash</code></article>
 </section>
 
 <section class="card">
     <div class="section-heading">
         <div>
-            <h2>Reconstructed Presentation 3 JSON</h2>
-            <p>This document was rebuilt from the relational owned-entity graph. Only extension/unknown properties came from JSONB columns.</p>
+            <h2>Canonical Presentation 3 JSON</h2>
+            <p>Serialized directly from the IIIF.Manifests.Serializer.Nodes.Manifest object graph stored as JSONB.</p>
         </div>
         <div class="button-group">
             <a asp-page-handler="Export" asp-route-id="@Model.Manifest.Id" asp-route-target="v3.0" class="button secondary">Export 3.0</a>

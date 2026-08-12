@@ -14,11 +14,11 @@ public sealed class EditModel(ManifestStoreService store) : PageModel
 
     public async Task<IActionResult> OnGetAsync(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await store.FindAsync(id, cancellationToken);
-        if (entity is null) return NotFound();
+        var detail = await store.FindAsync(id, cancellationToken);
+        if (detail is null) return NotFound();
         Id = id;
-        Input.Json = ManifestRelationalMapper.ToCanonicalJson(entity, indented: true);
-        Input.Version = entity.Version;
+        Input.Json = await store.CanonicalJsonAsync(id, cancellationToken) ?? "";
+        Input.Version = detail.Version;
         return Page();
     }
 
@@ -33,7 +33,7 @@ public sealed class EditModel(ManifestStoreService store) : PageModel
             ModelState.AddModelError(string.Empty, result.Error ?? "The Manifest could not be updated.");
             return Page();
         }
-        TempData["StatusMessage"] = "Relational Manifest aggregate updated in PostgreSQL.";
+        TempData["StatusMessage"] = "Manifest updated in PostgreSQL.";
         return RedirectToPage("Details", new { id });
     }
 }

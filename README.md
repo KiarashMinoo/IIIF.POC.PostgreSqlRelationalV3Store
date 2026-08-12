@@ -2,42 +2,11 @@
 
 A proof-of-concept ASP.NET Core Razor Pages application that stores a normalized **IIIF Presentation API 3** Manifest as a relational PostgreSQL aggregate.
 
-Known Presentation 3 elements are mapped with EF Core `OwnsOne` and `OwnsMany`. Only unknown and extension properties are stored in PostgreSQL `jsonb` columns named `additional_properties`.
+Known Presentation 3 elements are mapped with EF Core `OwnsOne` and `OwnsMany`. Unknown and extension properties round-trip through PostgreSQL `jsonb` columns instead of being dropped or forced into a relational shape.
 
 Core SDK:
 
 https://github.com/KiarashMinoo/IIIF.Manifest.Serializer.Net
-
-## Recommended repository name
-
-```text
-IIIF.POC.PostgreSqlRelationalV3Store
-```
-
-## Recommended GitHub About description
-
-**Proof-of-concept Razor Pages app that normalizes IIIF Manifests to Presentation 3 and stores the complete known object graph relationally with EF Core OwnsOne/OwnsMany, PostgreSQL, CRUD, and JSONB extension data.**
-
-## Suggested topics
-
-```text
-iiif
-dotnet
-csharp
-aspnet-core
-razor-pages
-postgresql
-entity-framework-core
-npgsql
-owned-entities
-relational-modeling
-jsonb
-crud
-optimistic-concurrency
-digital-libraries
-proof-of-concept
-nuget
-```
 
 ## Stack
 
@@ -46,9 +15,9 @@ nuget
 - Entity Framework Core 10
 - Npgsql EF Core provider 10
 - PostgreSQL 18
-- IIIF Manifest Serializer for .NET 3.0.13
+- IIIF Manifest Serializer for .NET 3.0.17
 
-## Persistence boundary
+## How it works
 
 ```text
 Presentation 2.x or 3.0 JSON
@@ -59,121 +28,42 @@ SDK validation
         ↓
 Normalization to Presentation 3
         ↓
-JSON-to-persistence projection
+EF Core owned aggregate (ManifestEntity → Manifest)
         ↓
-EF Core owned aggregate
-        ↓
-PostgreSQL relational tables
+PostgreSQL relational tables, extension data in jsonb columns
 ```
 
-The SDK model is not used directly as the EF Core entity model. A separate persistence projection mirrors the Presentation 3 shape. This avoids adding persistence concerns to the SDK while retaining its version-aware parsing and serialization behavior.
+Known Presentation 3 elements — labels, summaries, metadata, behavior, homepage/thumbnail/rendering/seeAlso/partOf links, providers, and Ranges (with their own nested labels/metadata/providers) — are mapped relationally with EF Core `OwnsOne`/`OwnsMany`. Canvas ordering (`Manifest.Items`), Range items, `start`, and `placeholderCanvas`/`accompanyingCanvas` round-trip through targeted `jsonb` columns instead, since the SDK exposes them only as polymorphic or fully-nested graphs with no fixed relational shape. CRUD covers create (validate → normalize → insert), read, update (replace-in-transaction with PostgreSQL `xmin` optimistic concurrency), delete (cascading), and export back to Presentation 2.0, 2.1, or 3.0.
 
-## Relationally mapped elements
+## Documentation
 
-The POC maps known Presentation 3 structures with `OwnsOne` or `OwnsMany`, including:
+The full mapping design — the owned-type tree, the JSONB conversion rules, and the CRUD/export flows — is under [`/docs`](docs/README.md), one README per folder with its types, members, and diagrams.
 
-- Manifest
-- language maps and language values
-- metadata
-- required statement
-- behavior values
-- homepage, thumbnail, rendering, seeAlso, and partOf links
-- providers/agents
-- services
-- Canvases
-- AnnotationPages
-- Annotations
-- annotation bodies and targets
-- Image, Audio, Video, TextualBody, Choice, and SpecificResource-style body data
-- selectors
-- Ranges and Range items
-- annotations on supported resources
-- placeholder and accompanying Canvases
-- start
+- [Data](docs/Data/README.md) `Types:2` `Files:2` `Diagrams:✓`
+  - [Configurations](docs/Data/Configurations/README.md) `Types:2` `Files:2` `Diagrams:✓`
+- [Domain](docs/Domain/README.md) `Types:1` `Files:1` `Diagrams:✓`
+- [Migrations](docs/Migrations/README.md) `Types:2` `Files:3` `Diagrams:✓`
+- [Models](docs/Models/README.md) `Types:5` `Files:5` `Diagrams:✓`
+- [Pages](docs/Pages/README.md) `Types:2` `Files:6` `Diagrams:✗`
+  - [Manifests](docs/Pages/Manifests/README.md) `Types:5` `Files:10` `Diagrams:✓`
+  - [Shared](docs/Pages/Shared/README.md) `Types:0` `Files:2` `Diagrams:✗`
+- [Services](docs/Services/README.md) `Types:2` `Files:2` `Diagrams:✓`
+- [wwwroot](docs/wwwroot/README.md) `Types:0` `Files:1` `Diagrams:✗`
 
-Every owned collection has an explicit surrogate row key and a `position` column so IIIF array order is preserved.
+## Package Dependencies
 
-## JSONB usage
+| Package | Version | Description | Links |
+|---|---|---|---|
+| `IIIF.Manifest.Serializer.Net` | 3.0.17 | IIIF Presentation parsing, validation, normalization, and serialization | [NuGet](https://www.nuget.org/packages/IIIF.Manifest.Serializer.Net) · [GitHub](https://github.com/KiarashMinoo/IIIF.Manifest.Serializer.Net) |
+| `Microsoft.EntityFrameworkCore` | 10.0.11 | EF Core runtime | [NuGet](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore) |
+| `Microsoft.EntityFrameworkCore.Design` | 10.0.11 | Design-time tooling for migrations | [NuGet](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Design) |
+| `Npgsql.EntityFrameworkCore.PostgreSQL` | 10.0.3 | PostgreSQL provider for EF Core | [NuGet](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL) |
 
-The POC does **not** store the whole Manifest as JSONB.
+No `NuGet.Config` is present, so restore uses the default feed (`https://api.nuget.org/v3/index.json`).
 
-Each resource-like persistence entity has:
+## Build
 
-```csharp
-public string AdditionalPropertiesJson { get; set; } = "{}";
-```
-
-It is mapped as:
-
-```csharp
-builder.Property(x => x.AdditionalPropertiesJson)
-    .HasColumnName("additional_properties")
-    .HasColumnType("jsonb");
-```
-
-This field contains only properties not explicitly represented by the relational Presentation 3 model, such as:
-
-- extension properties such as `navPlace`;
-- Image API service-specific fields such as `tiles`;
-- future or unknown properties;
-- third-party extension data.
-
-Known Presentation 3 properties are always stored relationally.
-
-## Entity configuration
-
-The central mapping is:
-
-```text
-Data/Configurations/ManifestEntityConfiguration.cs
-```
-
-Reusable owned-type mapping helpers are in:
-
-```text
-Data/Configurations/OwnedMappingHelpers.cs
-```
-
-Examples:
-
-```csharp
-builder.OwnsOne(x => x.Label, label =>
-    OwnedMappingHelpers.LanguageMap(
-        label,
-        "m_label_values",
-        "manifest_id"));
-
-builder.OwnsMany(x => x.Items, canvases =>
-    ConfigureCanvas(
-        canvases,
-        "canvases",
-        "manifest_id",
-        "c"));
-```
-
-`OwnsMany` rows use explicit `Guid` keys plus parent foreign keys. This keeps each row identifiable while preserving aggregate ownership and cascade deletion.
-
-## CRUD
-
-- **Create:** paste Presentation 2.x or 3.0 JSON, validate, normalize, project, and insert the owned aggregate.
-- **Read:** query Manifest fields and relational label values; display counts without loading raw JSON documents.
-- **Update:** rebuild and replace the owned aggregate with PostgreSQL `xmin` optimistic concurrency.
-- **Delete:** delete the root and cascade through all owned rows.
-- **Export:** reconstruct Presentation 3 JSON from relational rows, then use the SDK to export 3.0, 2.1, or 2.0.
-
-## Additional-property round trip
-
-The mapper uses this rule:
-
-```text
-known property
-    → relational column/table
-
-unknown or extension property
-    → nearest resource's additional_properties jsonb
-```
-
-When exporting, the JSONB object is loaded first and known relational properties are written over it. This prevents extension data from overriding the canonical known values.
+`dotnet restore` / `dotnet build -c Release`
 
 ## Run
 
@@ -190,17 +80,13 @@ dotnet restore
 dotnet run
 ```
 
-Default connection string:
+`appsettings.json` ships with:
 
 ```text
-Host=localhost;Port=5432;Database=iiif_relational_v3;Username=iiif;Password=iiif_dev_password
+Host=localhost;Port=5432;Database=iiif_relational_v3;Username=postgres;Password=123456
 ```
 
-Override it with:
-
-```text
-ConnectionStrings__PostgreSql
-```
+This does not match the `iiif`/`iiif_dev_password` credentials `compose.yaml` provisions — update one side or override the connection string with the `ConnectionStrings__PostgreSql` environment variable before running against the compose container.
 
 ## POC initialization
 
@@ -210,7 +96,7 @@ The POC uses:
 await db.Database.EnsureCreatedAsync();
 ```
 
-Use EF Core migrations before production deployment.
+A migration is also committed under `Migrations/` for environments that prefer `dotnet ef database update` — the running POC does not apply it automatically.
 
 ## Production considerations
 
@@ -229,22 +115,14 @@ Before production use, add:
 - explicit handling for unsupported future Presentation properties;
 - performance tests for large Manifests and deep owned graphs.
 
-## Recursive annotation boundary
-
-Presentation resources can theoretically contain recursively nested annotation graphs. A finite static `OwnsOne`/`OwnsMany` model cannot represent unlimited recursive ownership without an explicit boundary.
-
-This POC relationally maps one level of annotations attached to content resources. If a body inside that level contains another `annotations` property, the mapper rejects the document rather than silently moving that known property into JSONB.
-
-A production implementation that requires unlimited recursive annotation depth should use regular self-referencing entities for that portion of the graph, or define an explicit supported profile/depth.
-
 ## Important trade-off
 
 This design makes known Manifest elements relational and queryable, but it creates more tables, joins, and migration coupling than storing a complete Manifest document in one JSONB column.
 
-It is most appropriate when the application genuinely needs relational queries and constraints across the IIIF graph.
+It is most appropriate when the application needs relational queries and constraints across the IIIF graph.
 
 For a repository that mainly stores and serves opaque Manifests, complete-document JSONB storage may remain simpler.
 
 ## License
 
-Add the license appropriate for the POC repository before publishing.
+Free to use — this is a proof-of-concept repository with no usage restrictions.
