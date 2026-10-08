@@ -4,6 +4,8 @@ A proof-of-concept ASP.NET Core Razor Pages application that stores a normalized
 
 Known Presentation 3 elements are mapped with EF Core `OwnsOne` and `OwnsMany`. Unknown and extension properties round-trip through PostgreSQL `jsonb` columns instead of being dropped or forced into a relational shape.
 
+[![Architecture diagram](https://gitdiagram.com/diagram-badge.svg)](https://gitdiagram.com/kiarashminoo/IIIF.POC.PostgreSqlRelationalV3Store?utm_source=readme&utm_medium=badge)
+
 Core SDK:
 
 https://github.com/KiarashMinoo/IIIF.Manifest.Serializer.Net
